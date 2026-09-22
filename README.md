@@ -70,6 +70,7 @@ src/lingo/
 
 ## Deploy notes
 
+- Prefer the **Docker image** on a long-running host (Fly.io, Railway, Render, ECS, a VM). WhatsApp Calling needs persistent WebRTC connections; serverless platforms like **Vercel are a poor fit** even if the FastAPI entrypoint builds.
 - Same image runs locally and in production; inject secrets via env
 - Webhook path stays `/whatsapp`
 - Media is WebRTC to Meta (not through the tunnel); the tunnel only carries HTTPS signaling
