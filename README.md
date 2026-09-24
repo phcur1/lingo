@@ -163,7 +163,7 @@ uv run lingo-cli input.mp3 \
 | `OPENAI_MODEL` | no | Model (default: `gpt-6-luna`) |
 | `DATABASE_URL` | yes* | SQLAlchemy PostgreSQL URL (*WhatsApp conversation mode) |
 | `LEARNER_ID_SECRET` | yes* | Secret for protected learner IDs (*WhatsApp conversation mode) |
-| `HOST` / `PORT` | no | Bind address (default `0.0.0.0:7860`) |
+| `HOST` / `PORT` | no | Bind address. Web transport defaults to your LAN IP (`HOST=auto`); WhatsApp / Docker default `0.0.0.0:7860` |
 | `WEB_HTTPS` | no | HTTPS for web UI (default `true` when `TRANSPORT=web`) |
 | `WEB_CERT_DIR` | no | Where to store the self-signed cert (default `.lingo-certs`) |
 
