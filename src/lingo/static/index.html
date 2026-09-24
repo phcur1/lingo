@@ -1,0 +1,420 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="theme-color" content="#0c1412" />
+  <title>Lingo</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,500;9..144,650&family=Outfit:wght@400;500;600&display=swap"
+    rel="stylesheet"
+  />
+  <style>
+    :root {
+      --bg0: #0b1210;
+      --bg1: #15241f;
+      --ink: #eef4f0;
+      --muted: #9bb0a6;
+      --line: rgba(238, 244, 240, 0.12);
+      --accent: #d4a35c;
+      --accent-soft: rgba(212, 163, 92, 0.18);
+      --danger: #c45c4a;
+      --ok: #6fbf8f;
+      --glow: rgba(107, 168, 132, 0.22);
+    }
+
+    * { box-sizing: border-box; }
+
+    html, body {
+      height: 100%;
+      margin: 0;
+    }
+
+    body {
+      min-height: 100dvh;
+      color: var(--ink);
+      font-family: "Outfit", sans-serif;
+      background:
+        radial-gradient(1200px 700px at 12% -10%, rgba(107, 168, 132, 0.28), transparent 55%),
+        radial-gradient(900px 600px at 100% 10%, rgba(212, 163, 92, 0.16), transparent 50%),
+        radial-gradient(700px 500px at 50% 110%, rgba(45, 90, 72, 0.35), transparent 55%),
+        linear-gradient(160deg, var(--bg0), var(--bg1) 55%, #101a17);
+      overflow: hidden;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      opacity: 0.35;
+      background-image:
+        linear-gradient(rgba(238, 244, 240, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(238, 244, 240, 0.03) 1px, transparent 1px);
+      background-size: 48px 48px;
+      mask-image: radial-gradient(circle at center, black 20%, transparent 75%);
+      animation: drift 28s linear infinite;
+    }
+
+    @keyframes drift {
+      from { transform: translate3d(0, 0, 0); }
+      to { transform: translate3d(-48px, -48px, 0); }
+    }
+
+    @keyframes pulse {
+      0%, 100% { box-shadow: 0 0 0 0 var(--glow); transform: scale(1); }
+      50% { box-shadow: 0 0 0 18px transparent; transform: scale(1.015); }
+    }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(14px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    .shell {
+      min-height: 100dvh;
+      display: grid;
+      place-items: center;
+      padding: max(24px, env(safe-area-inset-top)) 24px max(32px, env(safe-area-inset-bottom));
+    }
+
+    .stage {
+      width: min(100%, 420px);
+      text-align: center;
+      animation: fadeUp 0.7s ease both;
+    }
+
+    .brand {
+      font-family: "Fraunces", serif;
+      font-weight: 650;
+      font-size: clamp(3.4rem, 14vw, 5rem);
+      letter-spacing: -0.04em;
+      line-height: 0.95;
+      margin: 0 0 18px;
+    }
+
+    .tagline {
+      margin: 0 auto 48px;
+      max-width: 22rem;
+      color: var(--muted);
+      font-size: 1.05rem;
+      line-height: 1.45;
+      font-weight: 400;
+    }
+
+    .orb {
+      width: 168px;
+      height: 168px;
+      margin: 0 auto 36px;
+      border-radius: 50%;
+      border: 1px solid var(--line);
+      background:
+        radial-gradient(circle at 35% 30%, rgba(238, 244, 240, 0.18), transparent 40%),
+        radial-gradient(circle at 70% 70%, var(--accent-soft), transparent 45%),
+        linear-gradient(145deg, #1d332c, #0f1a16);
+      display: grid;
+      place-items: center;
+      transition: border-color 0.3s ease, background 0.3s ease;
+    }
+
+    .orb.live {
+      border-color: rgba(111, 191, 143, 0.45);
+      animation: pulse 2.4s ease-in-out infinite;
+    }
+
+    .orb-core {
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: var(--muted);
+      transition: background 0.25s ease, transform 0.25s ease;
+    }
+
+    .orb.live .orb-core {
+      background: var(--ok);
+      transform: scale(1.25);
+    }
+
+    .orb.connecting .orb-core {
+      background: var(--accent);
+    }
+
+    .status {
+      margin: 0 0 28px;
+      font-size: 0.95rem;
+      letter-spacing: 0.08em;
+      text-transform: uppercase;
+      color: var(--muted);
+    }
+
+    .status strong {
+      color: var(--ink);
+      font-weight: 500;
+    }
+
+    .actions {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+    }
+
+    button {
+      appearance: none;
+      border: 0;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 600;
+      letter-spacing: 0.02em;
+      border-radius: 999px;
+      padding: 16px 34px;
+      min-width: 168px;
+      color: var(--bg0);
+      background: var(--ink);
+      transition: transform 0.18s ease, background 0.18s ease, color 0.18s ease, opacity 0.18s ease;
+    }
+
+    button:hover { transform: translateY(-1px); }
+    button:active { transform: translateY(1px) scale(0.98); }
+    button:disabled {
+      opacity: 0.55;
+      cursor: wait;
+      transform: none;
+    }
+
+    button.hangup {
+      color: var(--ink);
+      background: transparent;
+      border: 1px solid rgba(196, 92, 74, 0.55);
+    }
+
+    button.hangup:hover {
+      background: rgba(196, 92, 74, 0.16);
+    }
+
+    .hint {
+      margin-top: 28px;
+      color: var(--muted);
+      font-size: 0.85rem;
+      line-height: 1.4;
+      opacity: 0.9;
+    }
+
+    .error {
+      margin-top: 18px;
+      color: #f0b4ab;
+      font-size: 0.92rem;
+      min-height: 1.3em;
+    }
+
+    audio { display: none; }
+
+    @media (prefers-reduced-motion: reduce) {
+      body::before, .orb.live, .stage { animation: none; }
+    }
+  </style>
+</head>
+<body>
+  <main class="shell">
+    <section class="stage" aria-label="Lingo call">
+      <h1 class="brand">Lingo</h1>
+      <p class="tagline">Talk with the voice assistant on this laptop. Same Wi‑Fi is enough.</p>
+
+      <div id="orb" class="orb" aria-hidden="true">
+        <div class="orb-core"></div>
+      </div>
+
+      <p id="status" class="status"><strong>Ready</strong></p>
+
+      <div class="actions">
+        <button id="call-btn" type="button">Call</button>
+      </div>
+
+      <p id="error" class="error" role="status" aria-live="polite"></p>
+      <p class="hint">Allow microphone access when prompted. If the browser warns about the certificate, continue once — phones need HTTPS for the mic.</p>
+    </section>
+  </main>
+
+  <audio id="remote-audio" autoplay playsinline></audio>
+
+  <script>
+    const statusEl = document.getElementById("status");
+    const buttonEl = document.getElementById("call-btn");
+    const errorEl = document.getElementById("error");
+    const orbEl = document.getElementById("orb");
+    const audioEl = document.getElementById("remote-audio");
+
+    let peerConnection = null;
+    let localStream = null;
+    let connected = false;
+    let connecting = false;
+
+    const setStatus = (label) => {
+      statusEl.innerHTML = `<strong>${label}</strong>`;
+    };
+
+    const setError = (message) => {
+      errorEl.textContent = message || "";
+    };
+
+    const syncUi = () => {
+      if (connecting) {
+        setStatus("Connecting");
+        buttonEl.textContent = "Connecting…";
+        buttonEl.disabled = true;
+        buttonEl.classList.remove("hangup");
+        orbEl.classList.add("connecting");
+        orbEl.classList.remove("live");
+        return;
+      }
+      buttonEl.disabled = false;
+      orbEl.classList.remove("connecting");
+      if (connected) {
+        setStatus("On call");
+        buttonEl.textContent = "Hang up";
+        buttonEl.classList.add("hangup");
+        orbEl.classList.add("live");
+      } else {
+        setStatus("Ready");
+        buttonEl.textContent = "Call";
+        buttonEl.classList.remove("hangup");
+        orbEl.classList.remove("live");
+      }
+    };
+
+    const sendIceCandidate = async (pc, candidate) => {
+      await fetch("/api/offer", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          pc_id: pc.pc_id,
+          candidates: [{
+            candidate: candidate.candidate,
+            sdp_mid: candidate.sdpMid,
+            sdp_mline_index: candidate.sdpMLineIndex,
+          }],
+        }),
+      });
+    };
+
+    const createSmallWebRTCConnection = async (audioTrack) => {
+      const pc = new RTCPeerConnection({
+        iceServers: [{ urls: "stun:stun.l.google.com:19302" }],
+      });
+      pc.pendingIceCandidates = [];
+      pc.canSendIceCandidates = false;
+
+      pc.ontrack = (event) => {
+        audioEl.srcObject = event.streams[0];
+      };
+      pc.onconnectionstatechange = () => {
+        const state = pc.connectionState;
+        if (state === "connected") {
+          connected = true;
+          connecting = false;
+          syncUi();
+        } else if (state === "failed" || state === "disconnected" || state === "closed") {
+          if (connected || connecting) {
+            cleanup();
+            if (state === "failed") {
+              setError("Call failed. Check that the laptop and phone are on the same Wi‑Fi.");
+            }
+          }
+        }
+      };
+      pc.onicecandidate = async (event) => {
+        if (!event.candidate) return;
+        if (pc.canSendIceCandidates && pc.pc_id) {
+          await sendIceCandidate(pc, event.candidate);
+        } else {
+          pc.pendingIceCandidates.push(event.candidate);
+        }
+      };
+
+      // SmallWebRTCTransport expects audio + video transceivers.
+      pc.addTransceiver(audioTrack, { direction: "sendrecv" });
+      pc.addTransceiver("video", { direction: "sendrecv" });
+      await pc.setLocalDescription(await pc.createOffer());
+
+      const response = await fetch("/api/offer", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          sdp: pc.localDescription.sdp,
+          type: pc.localDescription.type,
+        }),
+      });
+      if (!response.ok) {
+        const detail = await response.text();
+        throw new Error(detail || `Offer failed (${response.status})`);
+      }
+      const answer = await response.json();
+      pc.pc_id = answer.pc_id;
+      await pc.setRemoteDescription(answer);
+      pc.canSendIceCandidates = true;
+      for (const candidate of pc.pendingIceCandidates) {
+        await sendIceCandidate(pc, candidate);
+      }
+      pc.pendingIceCandidates = [];
+      return pc;
+    };
+
+    const cleanup = () => {
+      if (peerConnection) {
+        peerConnection.onicecandidate = null;
+        peerConnection.ontrack = null;
+        peerConnection.onconnectionstatechange = null;
+        peerConnection.close();
+        peerConnection = null;
+      }
+      if (localStream) {
+        for (const track of localStream.getTracks()) track.stop();
+        localStream = null;
+      }
+      audioEl.srcObject = null;
+      connected = false;
+      connecting = false;
+      syncUi();
+    };
+
+    const connect = async () => {
+      setError("");
+      connecting = true;
+      syncUi();
+      try {
+        localStream = await navigator.mediaDevices.getUserMedia({
+          audio: {
+            echoCancellation: true,
+            noiseSuppression: true,
+            autoGainControl: true,
+          },
+          video: false,
+        });
+        peerConnection = await createSmallWebRTCConnection(localStream.getAudioTracks()[0]);
+      } catch (err) {
+        console.error(err);
+        cleanup();
+        const message = String(err && err.message ? err.message : err);
+        if (/NotAllowedError|Permission/i.test(message) || err.name === "NotAllowedError") {
+          setError("Microphone permission denied. Allow mic access and try again.");
+        } else if (/getUserMedia|mediaDevices|secure/i.test(message)) {
+          setError("Microphone needs a secure context. Open the HTTPS URL shown on the laptop.");
+        } else {
+          setError(message);
+        }
+      }
+    };
+
+    buttonEl.addEventListener("click", async () => {
+      if (connected || connecting) {
+        cleanup();
+        return;
+      }
+      await connect();
+    });
+
+    syncUi();
+  </script>
+</body>
+</html>

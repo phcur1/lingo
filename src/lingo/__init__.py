@@ -1,3 +1,3 @@
-"""Lingo WhatsApp voice call integration."""
+"""Lingo voice call integration (WhatsApp or local browser WebRTC)."""
 
-__version__ = "0.1.0"
+__version__ = "0.3.0"

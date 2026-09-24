@@ -14,7 +14,7 @@ services:
       retries: 10
   lingo:
     build: .
-    image: lingo-whatsapp:local
+    image: lingo:local
     ports:
       - "${PORT:-7860}:7860"
     env_file:
@@ -22,10 +22,14 @@ services:
     environment:
       HOST: 0.0.0.0
       PORT: 7860
+      TRANSPORT: ${TRANSPORT:-whatsapp}
     depends_on:
       db:
         condition: service_healthy
     restart: unless-stopped
+    volumes:
+      # Persist self-signed certs when TRANSPORT=web
+      - ./.lingo-certs:/app/.lingo-certs
 
 volumes:
   lingo-postgres:

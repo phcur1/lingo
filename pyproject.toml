@@ -1,7 +1,7 @@
 [project]
 name = "lingo"
-version = "0.1.0"
-description = "WhatsApp voice bot with ElevenLabs STT/TTS and OpenAI LLM"
+version = "0.3.0"
+description = "Voice bot with ElevenLabs STT/TTS and OpenAI LLM over WhatsApp or local browser WebRTC"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
@@ -11,6 +11,7 @@ dependencies = [
     "python-dotenv>=1.0.1",
     "aiohttp>=3.10.0",
     "openai>=1.50.0",
+    "cryptography>=42.0.0",
     "sqlalchemy>=2.0.0",
     "alembic>=1.14.0",
     "psycopg[binary]>=3.2.0",
@@ -33,6 +34,9 @@ artifacts = ["src/lingo/data/*.json", "src/lingo/migrations/**/*.mako"]
 
 [tool.hatch.build.targets.sdist]
 exclude = ["/venv", "/.venv"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"src/lingo/static" = "lingo/static"
 
 [dependency-groups]
 dev = [

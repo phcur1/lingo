@@ -49,7 +49,7 @@ class AudioFileReader(FrameProcessor):
 
     async def process_frame(self, frame, direction):
         await super().process_frame(frame, direction)
-        
+
         if isinstance(frame, AudioRawFrame):
             # Pass through audio frames
             await self.push_frame(frame, direction)
@@ -74,12 +74,18 @@ class AudioFileReader(FrameProcessor):
                 [
                     ffmpeg,
                     "-hide_banner",
-                    "-loglevel", "error",
-                    "-i", str(self._audio_file),
-                    "-f", "s16le",
-                    "-acodec", "pcm_s16le",
-                    "-ar", str(self._sample_rate),
-                    "-ac", "1",
+                    "-loglevel",
+                    "error",
+                    "-i",
+                    str(self._audio_file),
+                    "-f",
+                    "s16le",
+                    "-acodec",
+                    "pcm_s16le",
+                    "-ar",
+                    str(self._sample_rate),
+                    "-ac",
+                    "1",
                     "pipe:1",
                 ],
                 stdout=subprocess.PIPE,
@@ -210,11 +216,16 @@ class AudioFileWriter(FrameProcessor):
             [
                 ffmpeg,
                 "-hide_banner",
-                "-loglevel", "error",
-                "-f", "s16le",
-                "-ar", str(self._sample_rate),
-                "-ac", "1",
-                "-i", "pipe:0",
+                "-loglevel",
+                "error",
+                "-f",
+                "s16le",
+                "-ar",
+                str(self._sample_rate),
+                "-ac",
+                "1",
+                "-i",
+                "pipe:0",
                 "-y",  # Overwrite output file
                 str(self._output_file),
             ],
@@ -268,9 +279,7 @@ async def process_audio_file(
             tts = ElevenLabsHttpTTSService(
                 api_key=settings.elevenlabs_api_key,
                 aiohttp_session=aiohttp_session,
-                settings=ElevenLabsHttpTTSService.Settings(
-                    voice=settings.elevenlabs_voice_id
-                ),
+                settings=ElevenLabsHttpTTSService.Settings(voice=settings.elevenlabs_voice_id),
             )
             processors.extend(
                 [
@@ -280,9 +289,7 @@ async def process_audio_file(
                 ]
             )
         else:
-            processors.append(
-                ResponseCompletionTracker(response_complete, wait_for_tts=False)
-            )
+            processors.append(ResponseCompletionTracker(response_complete, wait_for_tts=False))
         processors.append(context_aggregator.assistant())
 
         worker = PipelineWorker(
@@ -315,9 +322,7 @@ async def process_audio_file(
 
 
 def create_parser() -> argparse.ArgumentParser:
-    parser = argparse.ArgumentParser(
-        description="Test Lingo STT/LLM/TTS pipeline with audio files"
-    )
+    parser = argparse.ArgumentParser(description="Test Lingo STT/LLM/TTS pipeline with audio files")
     parser.add_argument(
         "input",
         type=Path,
@@ -373,7 +378,7 @@ def main(argv: list[str] | None = None) -> None:
     # Load settings from environment, override with CLI args
     try:
         import os
-        
+
         if args.elevenlabs_api_key:
             os.environ["ELEVENLABS_API_KEY"] = args.elevenlabs_api_key
         if args.openai_api_key:

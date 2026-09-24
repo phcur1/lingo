@@ -46,12 +46,13 @@ async def run_bot(
     store: SessionStore | None = None,
     analysis_client: AnalysisClient | None = None,
 ) -> None:
-    """Answer one WhatsApp call with STT/LLM/TTS or echo mode."""
+    """Answer one WebRTC call with STT/LLM/TTS or echo mode."""
 
     call_id = call.id if call else None
     logger.info(
-        "Starting bot mode={} call_id={}",
+        "Starting bot mode={} transport={} call_id={}",
         settings.bot_mode,
+        settings.transport,
         call_id,
     )
 
