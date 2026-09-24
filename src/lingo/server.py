@@ -228,7 +228,11 @@ async def whatsapp_webhook(
 
 def create_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description="Lingo voice bot server")
-    parser.add_argument("--host", default=None, help="Bind host (default: HOST env or 0.0.0.0)")
+    parser.add_argument(
+        "--host",
+        default=None,
+        help="Bind host (default: HOST env; web transport uses LAN IP when unset)",
+    )
     parser.add_argument(
         "--port", type=int, default=None, help="Bind port (default: PORT env or 7860)"
     )

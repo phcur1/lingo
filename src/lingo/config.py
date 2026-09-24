@@ -8,10 +8,35 @@ from pathlib import Path
 
 from dotenv import load_dotenv
 
+from lingo.tls import primary_lan_ip
+
 load_dotenv(override=False)
 
 VALID_BOT_MODES = frozenset({"conversation", "echo_utterance", "echo_live"})
 VALID_TRANSPORTS = frozenset({"whatsapp", "web"})
+
+
+def resolve_bind_host(transport: str, raw_host: str | None) -> str:
+    """Pick the listen address.
+
+    For ``TRANSPORT=web``, default to the laptop LAN IP so phones can open that
+    address directly. Use ``HOST=0.0.0.0`` (or Docker) to listen on all interfaces.
+    ``HOST=auto`` always resolves to the LAN IP when detectable.
+    """
+    if raw_host is None:
+        host = ""
+    else:
+        host = raw_host.strip()
+
+    if not host:
+        if transport == "web":
+            return primary_lan_ip() or "0.0.0.0"
+        return "0.0.0.0"
+
+    if host.lower() == "auto":
+        return primary_lan_ip() or "0.0.0.0"
+
+    return host
 
 
 @dataclass(frozen=True)
@@ -60,7 +85,8 @@ class Settings:
         learner_id_secret = os.getenv("LEARNER_ID_SECRET", "").strip()
 
         bot_mode = os.getenv("BOT_MODE", "conversation").strip().lower()
-        host = os.getenv("HOST", "0.0.0.0").strip()
+        # None vs "" matters: unset → transport default; empty → same as unset.
+        host = resolve_bind_host(transport, os.getenv("HOST"))
         port = int(os.getenv("PORT", "7860"))
 
         # Phones on LAN need HTTPS for getUserMedia; default on for web transport.

@@ -14,9 +14,27 @@ from cryptography.x509.oid import NameOID
 from loguru import logger
 
 
+def primary_lan_ip() -> str | None:
+    """IPv4 on the default route interface (best guess for same-Wi‑Fi phones)."""
+    try:
+        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
+            # No packets are sent; this only selects the outbound interface.
+            sock.connect(("8.8.8.8", 80))
+            ip = sock.getsockname()[0]
+            if not ip.startswith("127."):
+                return ip
+    except OSError:
+        pass
+    return None
+
+
 def discover_lan_ips() -> list[str]:
     """Best-effort list of non-loopback IPv4 addresses on this machine."""
     ips: set[str] = set()
+    primary = primary_lan_ip()
+    if primary:
+        ips.add(primary)
+
     try:
         hostname = socket.gethostname()
         for info in socket.getaddrinfo(hostname, None, socket.AF_INET):
@@ -26,16 +44,9 @@ def discover_lan_ips() -> list[str]:
     except OSError:
         pass
 
-    try:
-        with socket.socket(socket.AF_INET, socket.SOCK_DGRAM) as sock:
-            sock.connect(("8.8.8.8", 80))
-            ip = sock.getsockname()[0]
-            if not ip.startswith("127."):
-                ips.add(ip)
-    except OSError:
-        pass
-
-    return sorted(ips)
+    # Prefer the default-route address first; keep the rest sorted.
+    rest = sorted(ip for ip in ips if ip != primary)
+    return ([primary] if primary else []) + rest
 
 
 def ensure_self_signed_cert(
