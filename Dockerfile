@@ -9,8 +9,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
 
 WORKDIR /app
 
-# System libs used by aiortc / opus / silero runtime
-RUN apt-get update \
+# System libs used by aiortc / opus / silero runtime.
+# Remove docker-clean so apt Post-Invoke does not fail on some Docker Desktop hosts:
+#   E: Problem executing scripts APT::Update::Post-Invoke 'rm -f /var/cache/apt/...'
+RUN rm -f /etc/apt/apt.conf.d/docker-clean \
+    && echo 'Binary::apt::APT::Keep-Downloaded-Packages "true";' > /etc/apt/apt.conf.d/keep-cache \
+    && apt-get update \
     && apt-get install -y --no-install-recommends \
         build-essential \
         ca-certificates \
