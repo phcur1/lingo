@@ -1,7 +1,7 @@
 services:
   lingo:
     build: .
-    image: lingo-whatsapp:local
+    image: lingo:local
     ports:
       - "${PORT:-7860}:7860"
     env_file:
@@ -9,5 +9,8 @@ services:
     environment:
       HOST: 0.0.0.0
       PORT: 7860
-      ECHO_MODE: ${ECHO_MODE:-utterance}
+      TRANSPORT: ${TRANSPORT:-whatsapp}
     restart: unless-stopped
+    volumes:
+      # Persist self-signed certs when TRANSPORT=web
+      - ./.lingo-certs:/app/.lingo-certs

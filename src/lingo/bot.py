@@ -25,18 +25,31 @@ from lingo.config import Settings
 from lingo.echo import LiveEchoProcessor, UtteranceEchoProcessor
 
 
+def _system_instruction(settings: Settings) -> str:
+    if settings.transport == "web":
+        return (
+            "You are Lingo, a helpful voice assistant. Keep your responses "
+            "concise, conversational, friendly, and natural."
+        )
+    return (
+        "You are a helpful voice assistant on WhatsApp. Keep your responses "
+        "concise, conversational, friendly, and natural."
+    )
+
+
 async def run_bot(
     webrtc_connection: SmallWebRTCConnection,
     settings: Settings,
     call: WhatsAppConnectCall | None = None,
 ) -> None:
-    """Answer one WhatsApp call with STT/LLM/TTS or echo mode."""
+    """Answer one WebRTC call with STT/LLM/TTS or echo mode."""
 
     caller = call.from_ if call else None
     call_id = call.id if call else None
     logger.info(
-        "Starting bot mode={} call_id={} caller={}",
+        "Starting bot mode={} transport={} call_id={} caller={}",
         settings.bot_mode,
+        settings.transport,
         call_id,
         caller,
     )
@@ -75,10 +88,7 @@ async def run_bot(
                 api_key=settings.openai_api_key,
                 settings=OpenAILLMService.Settings(
                     model=settings.openai_model,
-                    system_instruction=(
-                        "You are a helpful voice assistant on WhatsApp. Keep your responses "
-                        "concise, conversational, friendly, and natural."
-                    ),
+                    system_instruction=_system_instruction(settings),
                 ),
             )
             tts = ElevenLabsTTSService(
