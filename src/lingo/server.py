@@ -22,8 +22,10 @@ from pipecat.transports.smallwebrtc.request_handler import (
 from pipecat.transports.whatsapp.api import WhatsAppConnectCall, WhatsAppWebhookRequest
 from pipecat.transports.whatsapp.client import WhatsAppClient
 
+from lingo.analysis import OpenAIAnalysisClient
 from lingo.bot import run_bot
 from lingo.config import Settings
+from lingo.database import SessionStore, create_session_factory
 from lingo.tls import discover_lan_ips, ensure_self_signed_cert
 
 STATIC_DIR = Path(__file__).resolve().parent / "static"
@@ -31,6 +33,8 @@ STATIC_DIR = Path(__file__).resolve().parent / "static"
 whatsapp_client: WhatsAppClient | None = None
 small_webrtc_handler: SmallWebRTCRequestHandler | None = None
 settings: Settings | None = None
+session_store: SessionStore | None = None
+analysis_client: OpenAIAnalysisClient | None = None
 
 
 def _log_access_urls(cfg: Settings) -> None:
@@ -42,14 +46,18 @@ def _log_access_urls(cfg: Settings) -> None:
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    global whatsapp_client, small_webrtc_handler, settings
+    global whatsapp_client, small_webrtc_handler, settings, session_store, analysis_client
 
     bot_mode = os.getenv("BOT_MODE", "conversation").strip().lower()
     transport = os.getenv("TRANSPORT", "whatsapp").strip().lower()
     require_ai = bot_mode == "conversation"
     require_whatsapp = transport == "whatsapp"
     settings = Settings.from_env(require_whatsapp=require_whatsapp, require_ai=require_ai)
-
+    engine = None
+    if settings.bot_mode == "conversation" and settings.transport == "whatsapp":
+        engine, session_factory = create_session_factory(settings.database_url)
+        session_store = SessionStore(session_factory)
+        analysis_client = OpenAIAnalysisClient(settings.openai_api_key, settings.openai_model)
     logger.info(
         "Starting Lingo server (transport={}, mode={})",
         settings.transport,
@@ -88,6 +96,10 @@ async def lifespan(app: FastAPI):
             logger.info("Terminating active WhatsApp calls...")
             await whatsapp_client.terminate_all_calls()
             whatsapp_client = None
+            session_store = None
+            analysis_client = None
+            if engine:
+                engine.dispose()
             logger.info("Shutdown complete")
 
 
@@ -193,8 +205,10 @@ async def whatsapp_webhook(
         connection: SmallWebRTCConnection,
         call: WhatsAppConnectCall,
     ) -> None:
-        logger.info("Accepted WhatsApp call id={} from={}", call.id, call.from_)
-        background_tasks.add_task(run_bot, connection, settings, call)
+        logger.info("Accepted WhatsApp call id={}", call.id)
+        background_tasks.add_task(
+            run_bot, connection, settings, call, session_store, analysis_client
+        )
 
     try:
         result = await whatsapp_client.handle_webhook_request(

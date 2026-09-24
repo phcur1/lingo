@@ -12,11 +12,17 @@ dependencies = [
     "aiohttp>=3.10.0",
     "openai>=1.50.0",
     "cryptography>=42.0.0",
+    "sqlalchemy>=2.0.0",
+    "alembic>=1.14.0",
+    "psycopg[binary]>=3.2.0",
 ]
 
 [project.scripts]
 lingo = "lingo.server:main"
 lingo-cli = "lingo.cli:main"
+lingo-eval = "lingo.evaluation:main"
+lingo-migrate = "lingo.migrate:main"
+lingo-start = "lingo.start:main"
 
 [build-system]
 requires = ["hatchling"]
@@ -24,12 +30,17 @@ build-backend = "hatchling.build"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/lingo"]
+artifacts = ["src/lingo/data/*.json", "src/lingo/migrations/**/*.mako"]
+
+[tool.hatch.build.targets.sdist]
+exclude = ["/venv", "/.venv"]
 
 [tool.hatch.build.targets.wheel.force-include]
 "src/lingo/static" = "lingo/static"
 
 [dependency-groups]
 dev = [
+    "pytest>=8.0.0",
     "ruff>=0.12.0",
 ]
 
