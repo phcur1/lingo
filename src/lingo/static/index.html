@@ -247,6 +247,8 @@
 
     let peerConnection = null;
     let localStream = null;
+    let dataChannel = null;
+    let keepAliveInterval = null;
     let connected = false;
     let connecting = false;
 
@@ -307,6 +309,8 @@
 
       pc.ontrack = (event) => {
         audioEl.srcObject = event.streams[0];
+        // Some mobile browsers need an explicit play() after the track arrives.
+        audioEl.play().catch(() => {});
       };
       pc.onconnectionstatechange = () => {
         const state = pc.connectionState;
@@ -332,9 +336,29 @@
         }
       };
 
-      // SmallWebRTCTransport expects audio + video transceivers.
+      // Pipecat SmallWebRTC expects the browser to open a "chat" data channel
+      // for app messages / metrics / keepalives. Without it the server queues
+      // messages for 10s then logs "Message queue is full".
+      dataChannel = pc.createDataChannel("chat", { ordered: true });
+      dataChannel.addEventListener("open", () => {
+        if (keepAliveInterval) clearInterval(keepAliveInterval);
+        keepAliveInterval = setInterval(() => {
+          if (dataChannel && dataChannel.readyState === "open") {
+            dataChannel.send("ping: " + Date.now());
+          }
+        }, 1000);
+      });
+      dataChannel.addEventListener("close", () => {
+        if (keepAliveInterval) {
+          clearInterval(keepAliveInterval);
+          keepAliveInterval = null;
+        }
+      });
+
+      // Transceiver order: audio, camera video, screen video (Pipecat convention).
       pc.addTransceiver(audioTrack, { direction: "sendrecv" });
       pc.addTransceiver("video", { direction: "sendrecv" });
+      pc.addTransceiver("video", { direction: "sendonly" });
       await pc.setLocalDescription(await pc.createOffer());
 
       const response = await fetch("/api/offer", {
@@ -361,6 +385,14 @@
     };
 
     const cleanup = () => {
+      if (keepAliveInterval) {
+        clearInterval(keepAliveInterval);
+        keepAliveInterval = null;
+      }
+      if (dataChannel) {
+        try { dataChannel.close(); } catch (_) {}
+        dataChannel = null;
+      }
       if (peerConnection) {
         peerConnection.onicecandidate = null;
         peerConnection.ontrack = null;
